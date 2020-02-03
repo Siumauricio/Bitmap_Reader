@@ -7,18 +7,19 @@ using namespace std;
 Bitmap::Bitmap () {}
 
 Bitmap::Bitmap (char* Filename) {
-	//ObtenerBmp_Header (Filename);
+	ObtenerBmp_Header (Filename);
 	ObtenerBmp_InfoHeader (Filename);
 }
 
 void Bitmap::ObtenerBmp_Header (char* Filename) {
 	ifstream File;
 	File.open (Filename, ifstream::in | ifstream::binary);
-	File.read (Header.Tipo, sizeof (BMP_Header));
-	char* Header_Posiciones = reinterpret_cast<char*>(&Header);
+	char* Header_Posiciones =new char[sizeof(BMP_Header)];
+	File.read (Header_Posiciones, sizeof (BMP_Header));
 	char informacion[4];
 	int Posicion_Byte = 1;
 	int Posicion_Info = 0;
+
 
 	for (int i = 1; i <= 4; i++) {
 		informacion[Posicion_Info] = Header_Posiciones[Posicion_Byte + i];
@@ -36,12 +37,12 @@ void Bitmap::ObtenerBmp_Header (char* Filename) {
 			Posicion_Info++;
 		}
 	}
-	Header.Tipo[2] = '\0';
 	cout << setw (15) << "Header" << endl;
-	cout << "Tipo: " << Header.Tipo << endl;
+	cout << "Tipo: " << Header_Posiciones[0]<< Header_Posiciones[1] << endl;
 	cout << "Tamano Archivo: " << Header.Tamano << endl;
 	cout << "Espacio Reservado: " << sizeof (Header.Reservado) << endl;
 	cout << "DataOffset: " << Header.OffsetData << endl;
+	cout << endl;
 	File.close ();
 }
 
@@ -51,19 +52,12 @@ void Bitmap::ObtenerBmp_InfoHeader (char* Filename) {
 	if (File.fail ()) {
 		return;
 	}
-	char* Info_Posiciones = reinterpret_cast<char*>(&InfoHeader);
-	File.read (Info_Posiciones, sizeof (BMP_InfoHeader));
+	char* Info_Posiciones = new char[sizeof (BMP_InfoHeader)+sizeof(BMP_Header)];
+	File.read (Info_Posiciones, sizeof (BMP_InfoHeader) + sizeof (BMP_Header));
 	char informacion[4];
 	int Posicion_Byte = 17;
 	int Posicion_Info = 0;
 
-	informacion[0] = Info_Posiciones[38];
-	informacion[1] = Info_Posiciones[39];
-	informacion[2] = Info_Posiciones[40];
-	informacion[3] = Info_Posiciones[41];
-	memcpy (&InfoHeader.Pixeles_X, informacion, 4);
-	cout << "INFO: " << (int)InfoHeader.Pixeles_X << endl;
-	return;
 	for (int i = 1; i <= 4; i++) {
 		informacion[Posicion_Info] = Info_Posiciones[Posicion_Byte + i];
 		if (i == 2 && Posicion_Byte == 25) {
@@ -92,8 +86,8 @@ void Bitmap::ObtenerBmp_InfoHeader (char* Filename) {
 				Posicion_Byte = 37;
 			} else if (Posicion_Byte == 37) {
 				memcpy (&InfoHeader.Pixeles_X, informacion, 4);
-				Posicion_Byte = 40;
-			} else if (Posicion_Byte == 40) {
+				Posicion_Byte = 41;
+			} else if (Posicion_Byte == 41) {
 				memcpy (&InfoHeader.Pixeles_Y, informacion, 4);
 				Posicion_Byte = 45;
 			} else if (Posicion_Byte == 45) {
@@ -121,6 +115,6 @@ void Bitmap::ObtenerBmp_InfoHeader (char* Filename) {
 	cout << "Pixel Y: " << InfoHeader.Pixeles_Y << endl;
 	cout << "Colores U: " << InfoHeader.Colores_Usados << endl;
 	cout << "Colores I: " << InfoHeader.Colores_Importantes << endl;
-
+	File.close ();
 }
 
