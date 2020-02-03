@@ -4,8 +4,8 @@
 
 struct BMP_Header {
 	char Tipo[2];
-	int Tamano;
 	char Reservado[4];
+	int Tamano;
 	int OffsetData;
 };
 
